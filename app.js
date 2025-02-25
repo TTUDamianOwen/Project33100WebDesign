@@ -7,78 +7,83 @@
 ------------------------------------------------------------*/
 
 // Start function to get the users location:
-function getUserLocation(){
-    //confirms geolocation is in the navigator:
-    if("geolocation" in navigator) {
-        navigator.geolocation.getCurrentPosition(async (position) =>{
-            let lat = parseFloat(position.coords.latitude)
-            let lon = parseFloat(position.coords.longitude)
-            getWeatherByCoordinates(lat,lon)
-        
+function getUserLocation() {
+    // Confirms geolocation is in the navigator:
+    if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(async (position) => {
+            let lat = parseFloat(position.coords.latitude);
+            let lon = parseFloat(position.coords.longitude);
+            getWeatherByCoordinates(lat, lon);
         }, 
-        //if navigator has an error:
-        (error)=>{
-            //data the user will see if they don't have location access on:
-            document.getElementById("cityName").innerHTML ="Location Access Denied"
-            document.getElementById("temperature").innerHTML ="--°"
-            document.getElementById("humidity").innerHTML ="--%"
-            document.getElementById("weatherDescription").innerHTML ="Allow location access in order to see your area's weather conditions."
-            document.getElementById("weatherIcon").className="bi bi-exclamation-circle text-danger"
+        // If navigator has an error:
+        (error) => {
+            // Data the user will see if they don't have location access on:
+            document.getElementById("cityName").innerHTML = "Location Access Denied";
+            document.getElementById("temperature").innerHTML = "--°";
+            document.getElementById("humidity").innerHTML = "--%";
+            document.getElementById("weatherDescription").innerHTML = "Allow location access to see your area's weather conditions.";
+            document.getElementById("weatherIcon").className = "bi bi-exclamation-circle text-danger";
         });
     } else {
         document.getElementById("cityName").innerHTML = "Geolocation is not supported.";
     }
 }
-//End function to get the users location
+// End function to get the users location
 
-//Start function to fetch City and State:
-async function getCityAndState(lat,lon) {
-    lat = parseFloat(lat)
-    lon = parseFloat(lon)
-    const city = await fetch(`https://us1.api-bdc.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`)
-    const cityData = await city.json()
-    const cityName = cityData.city + ', '+ cityData.principleSubdivision
-    document.getElementById("cityName").innerHTML = cityName
+// Start function to fetch City and State:
+async function getCityAndState(lat, lon) {
+    try {
+        lat = parseFloat(lat);
+        lon = parseFloat(lon);
+        const city = await fetch(`https://us1.api-bdc.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
+        const cityData = await city.json();
+        const cityName = cityData.city + ', ' + cityData.principalSubdivision;
+        document.getElementById("cityName").innerHTML = cityName;
+    } catch (error) {
+        console.error("Error fetching city data:", error);
+        document.getElementById("cityName").innerHTML = "City data unavailable";
+    }
 }
-//End function to fetch City and State
+// End function to fetch City and State
 
-//Start function to fetch Weather based on coordinates:
-async function getWeatherByCoordinates(lat,lon){
-    try{
-        lat = parseFloat(lat)
-        lon = parseFloat(lon)
-        //fetches city name:
-        const geo = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code`)
-        const geoData =await geo.json()
+// Start function to fetch Weather based on coordinates:
+async function getWeatherByCoordinates(lat, lon) {
+    try {
+        lat = parseFloat(lat);
+        lon = parseFloat(lon);
 
-        //Fetches Weather data:
-        const weather = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code`)
-        const weatherData = await weather.json()
-        console.log(weatherData)
-        const temp = weatherData.current.temperature_2m
-        const humidity = weatherData.current.relative_humidity_2m
-        const weatherCode = weatherData.current.weather_code
+        // Fetch city name:
+        await getCityAndState(lat, lon);
 
-        //Fetches the weather description and the weather icon
-        const weatherDescription= getWeatherDescription(weatherCode)
-        const icon = getWeatherIcon(weatherCode)
+        // Fetch Weather data:
+        const weather = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code`);
+        const weatherData = await weather.json();
+        console.log(weatherData);
 
-        //Update the UI with the gathered data:
-        document.getElementById("temperature").innerHTML = `$(temp)℃`
-        document.getElementById("humidity").innerHTML = `$(humidity)%`
-        document.getElementById("weatherDescription").innerHTML = weatherDescription
-        document.getElementById("weatherIcon").className = `bi $(icon)`
+        const temp = weatherData.current.temperature_2m;
+        const humidity = weatherData.current.relative_humidity_2m;
+        const weatherCode = weatherData.current.weather_code;
 
-        
+        // Fetch the weather description and the weather icon
+        const weatherDescription = getWeatherDescription(weatherCode);
+        const icon = getWeatherIcon(weatherCode);
 
-    }catch (error){
-        console.error("Error fetching weather Data:", error)
+        // Update the UI with the gathered data:
+        document.getElementById("temperature").innerHTML = `${temp}℃`;
+        document.getElementById("humidity").innerHTML = `${humidity}%`;
+        document.getElementById("weatherDescription").innerHTML = weatherDescription;
+        document.getElementById("weatherIcon").className = `bi ${icon}`;
+
+    } catch (error) {
+        console.error("Error fetching weather data:", error);
+        document.getElementById("weatherDescription").innerHTML = "Failed to fetch weather data.";
+        document.getElementById("weatherIcon").className = "bi bi-exclamation-circle text-danger";
     }
 }
 
-//weather icons gathered from bootstrap
+// Weather icons gathered from Bootstrap
 function getWeatherIcon(code) {
-    const weatherIcons ={
+    const weatherIcons = {
         0: "bi-brightness-high",
         1: "bi-cloud-sun",
         2: "bi-cloud",
@@ -103,12 +108,12 @@ function getWeatherIcon(code) {
         95: "bi-cloud-lightning",
         96: "bi-cloud-lightning-rain",
         99: "bi-cloud-lightning-rain",
-    }
-    return weatherIcons[code]
+    };
+    return weatherIcons[code];
 }
 
-//function to get weather descriptions based on the weather codes
-function getWeatherDescription(code){
+// Function to get weather descriptions based on the weather codes
+function getWeatherDescription(code) {
     const weatherDescriptions = {
         0: "Clear Sky",
         1: "Mostly Clear",
@@ -134,12 +139,12 @@ function getWeatherDescription(code){
         95: "Thunderstorms",
         96: "Rainy Thunderstorms",
         99: "Severe Thunderstorms",
-    }
-    return weatherDescriptions[code]
+    };
+    return weatherDescriptions[code];
 }
 
-//Fetch the weather conditions when the page is loaded
-document.addEventListener("DOMContentLoaded", getUserLocation)
+// Fetch the weather conditions when the page is loaded
+document.addEventListener("DOMContentLoaded", getUserLocation);
 
-//references for easy C&P:
-//https://open-meteo.com/en/docs#latitude=${lat}&longitude=${lon}
+// References for easy C&P:
+// https://open-meteo.com/en/docs#latitude=${lat}&longitude=${lon}
