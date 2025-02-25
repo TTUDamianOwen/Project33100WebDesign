@@ -67,11 +67,12 @@ async function getWeatherByCoordinates(lat,lon){
         document.getElementById("temperature").innerHTML = `$(temp)℃`
         document.getElementById("humidity").innerHTML = `$(humidity)%`
         document.getElementById("weatherDescription").innerHTML = weatherDescription
+        document.getElementById("weatherIcon").className = `bi $(icon)`
 
         
 
-    }catch{
-        //something
+    }catch (error){
+        console.error("Error fetching weather Data:", error)
     }
 }
 
