@@ -60,6 +60,10 @@ async function getWeatherByCoordinates(lat, lon) {
         const weatherData = await weather.json();
         console.log(weatherData);
 
+        if (!weatherData.current) {
+            throw new Error("Weather data not available");
+        }
+
         const temp = weatherData.current.temperature_2m;
         const humidity = weatherData.current.relative_humidity_2m;
         const weatherCode = weatherData.current.weather_code;
@@ -76,7 +80,7 @@ async function getWeatherByCoordinates(lat, lon) {
 
     } catch (error) {
         console.error("Error fetching weather data:", error);
-        document.getElementById("weatherDescription").innerHTML = "Failed to fetch weather data.";
+        document.getElementById("weatherDescription").innerHTML = "Failed to fetch weather data. Please try again later.";
         document.getElementById("weatherIcon").className = "bi bi-exclamation-circle text-danger";
     }
 }
@@ -145,6 +149,3 @@ function getWeatherDescription(code) {
 
 // Fetch the weather conditions when the page is loaded
 document.addEventListener("DOMContentLoaded", getUserLocation);
-
-// References for easy C&P:
-// https://open-meteo.com/en/docs#latitude=${lat}&longitude=${lon}
