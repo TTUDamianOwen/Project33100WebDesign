@@ -70,6 +70,8 @@ async function getWeatherByCoordinates(lat,lon){
 
         
 
+    }catch{
+        //something
     }
 }
 
